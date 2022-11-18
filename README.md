@@ -7,11 +7,11 @@
 **device**:('cuda' or 'cpu') String type, specifying the equipment to be used \
 **ip**: String type, specifying the client's ip [*only the client needs to specify*] \
 **port**: Int type, specifying the client's port [*only the client needs to specify*] \
-**server_ip**: String type, specifying the server's ip \ 
-**server_port**: Int type, specifying the server's port \ 
+**server_ip**: String type, specifying the server's ip \
+**server_port**: Int type, specifying the server's port \
 **batch_size**: Int type: specifying the mini-batch size \
 **compressor**:('sparsification' or 'quantization' or 'sparsification_compensation') String type, specifying compression policy \
-**bit**: Int type, specifying quantization's bit or sparse compensation mask's bit \ 
+**bit**: Int type, specifying quantization's bit or sparse compensation mask's bit \
 **ratio**: Float type, specifying sparsification's ratio \
 **epoch**: Int type specifying training rounds \
 **path**: String type, specifying the dataset path [*only the client needs to specify*] \
