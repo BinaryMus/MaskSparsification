@@ -95,12 +95,12 @@ def vgg19_cifar10_server(device: str = 'cuda',
                          server_port: int = 9000,
                          batch_size: int = 256,
                          compressor=None,
-                         epoch: int = 20,
+                         epoch: int = 40,
                          ):
     from .server_models import ServerVGG19
     model = ServerVGG19().to(device)
     optimizer = torch.optim.SGD(model.parameters(), lr=0.1, momentum=0.9, weight_decay=1e-4)
-    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.1)
+    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.2)
     return BaseServer(model, optimizer, scheduler, [batch_size, 64, 32, 32], epoch, server_ip, server_port, device,
                       compressor)
 
