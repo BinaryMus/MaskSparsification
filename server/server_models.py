@@ -1,9 +1,10 @@
+import torch
 import torch.nn as nn
 
 
-class ServerVGG19(nn.Module):
+class ServerVGG19x18(nn.Module):
     def __init__(self):
-        super(ServerVGG19, self).__init__()
+        super(ServerVGG19x18, self).__init__()
         self.server_feature_extraction = nn.Sequential(
             nn.Sequential(
                 nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, stride=1, padding=1),
@@ -108,7 +109,34 @@ class ServerVGG19(nn.Module):
         return x
 
     def __str__(self):
-        return "VGG19"
+        return "VGG19x1"
+
+
+class ServerVGG19X17(ServerVGG19x18):
+    def __init__(self):
+        super(ServerVGG19X17, self).__init__()
+        del self.server_feature_extraction[0]
+
+    def __str__(self):
+        return "VGG19x2"
+
+
+class ServerVGG19X11(ServerVGG19x18):
+    def __init__(self):
+        super(ServerVGG19X11, self).__init__()
+        del self.server_feature_extraction[:7]
+
+    def __str__(self):
+        return "VGG19x8"
+
+
+class ServerVGG19x4(ServerVGG19x18):
+    def __init__(self):
+        super(ServerVGG19x4, self).__init__()
+        del self.server_feature_extraction[:14]
+
+    def __str__(self):
+        return "VGG19x15"
 
 
 class BasicBlock(nn.Module):
@@ -139,9 +167,9 @@ class BasicBlock(nn.Module):
         return out
 
 
-class ServerResNet18(nn.Module):
+class ServerResNet18x17(nn.Module):
     def __init__(self):
-        super(ServerResNet18, self).__init__()
+        super(ServerResNet18x17, self).__init__()
 
         self.in_channels = 64
         self.layer1 = self._make_layer(BasicBlock, 64, 2, 1)
@@ -175,12 +203,50 @@ class ServerResNet18(nn.Module):
         return x
 
     def __str__(self):
-        return "ResNet18"
+        return "ResNet18x1"
 
 
-class ServerResNet34(ServerResNet18):
+class ServerResNet18x16(ServerResNet18x17):
     def __init__(self):
-        super(ServerResNet18, self).__init__()
+        super(ServerResNet18x16, self).__init__()
+        del self.layer1[0]
+
+    def __str__(self):
+        return "ResNet18x2"
+
+
+class ServerResNet18x9(ServerResNet18x17):
+    def __init__(self):
+        super(ServerResNet18x9, self).__init__()
+        del self.layer1
+        del self.layer2
+        self.server_feature_extraction = nn.Sequential(
+            self.layer3,
+            self.layer4,
+            self.avg_pool,
+        )
+
+    def __str__(self):
+        return "ResNet18x9"
+
+
+class ServerResNet18x5(ServerResNet18x17):
+    def __init__(self):
+        super(ServerResNet18x5, self).__init__()
+        del self.layer1
+        del self.layer2
+        self.server_feature_extraction = nn.Sequential(
+            self.layer4,
+            self.avg_pool,
+        )
+
+    def __str__(self):
+        return "ResNet18x13"
+
+
+class ServerResNet34x33(ServerResNet18x17):
+    def __init__(self):
+        super(ServerResNet34x33, self).__init__()
         self.in_channels = 64
         self.layer1 = self._make_layer(BasicBlock, 64, 3, 1)
         self.layer2 = self._make_layer(BasicBlock, 128, 4, 2)
@@ -197,4 +263,43 @@ class ServerResNet34(ServerResNet18):
         self.server_classifier = nn.Linear(512, 200)
 
     def __str__(self):
-        return "ResNet34"
+        return "ResNet34x1"
+
+
+class ServerResNet34x32(ServerResNet34x33):
+    def __init__(self):
+        super(ServerResNet34x32, self).__init__()
+        del self.layer1[0]
+
+    def __str__(self):
+        return "ResNet34x2"
+
+
+class ServerResNet34x19(ServerResNet34x33):
+    def __init__(self):
+        super(ServerResNet34x19, self).__init__()
+        del self.layer1
+        del self.layer2
+        self.server_feature_extraction = nn.Sequential(
+            self.layer3,
+            self.layer4,
+            self.avgpool,
+        )
+
+    def __str__(self):
+        return "ResNet34x15"
+
+
+class ServerResNet34x7(ServerResNet34x33):
+    def __init__(self):
+        super(ServerResNet34x7, self).__init__()
+        del self.layer1
+        del self.layer2
+        del self.layer3
+        self.server_feature_extraction = nn.Sequential(
+            self.layer4,
+            self.avgpool,
+        )
+
+    def __str__(self):
+        return "ResNet34x27"

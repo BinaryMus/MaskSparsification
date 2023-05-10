@@ -115,13 +115,14 @@ def vgg19_cifar10_client(device: str = 'cpu',
                          server_ip: str = "127.0.0.1",
                          server_port: int = 9000,
                          epoch: int = 40,
+                         cutlayer: int = 1,
                          compressor=None,
                          ):
     from torchvision.datasets import CIFAR10
     from torchvision.transforms import Compose, ToTensor, Normalize
-    from .client_models import ClientVGG19
-
-    model = ClientVGG19().to(torch.device(device))
+    from .client_models import ClientVGG19x1, ClientVGG19x2, ClientVGG19x8, ClientVGG19x15
+    models = {1: ClientVGG19x1, 2: ClientVGG19x2, 8: ClientVGG19x8, 15: ClientVGG19x15}
+    model = models[cutlayer]().to(torch.device(device))
 
     optimizer = torch.optim.SGD(model.parameters(), lr=0.1, momentum=0.9, weight_decay=1e-4)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.2)
@@ -145,12 +146,16 @@ def resnet18_cifar100_client(device: str = 'cpu',
                              server_ip: str = "127.0.0.1",
                              server_port: int = 9000,
                              epoch: int = 60,
+                             cutlayer: int = 1,
                              compressor=None,
                              ):
     from torchvision.datasets import CIFAR100
     from torchvision.transforms import Compose, ToTensor, Normalize, RandomCrop, RandomHorizontalFlip, RandomRotation
-    from .client_models import ClientResNet18
-    model = ClientResNet18().to(torch.device(device))
+    from .client_models import ClientResNet18x1, ClientResNet18x2, ClientResNet18x9, ClientResNet18x13
+
+    models = {1: ClientResNet18x1, 2: ClientResNet18x2, 9: ClientResNet18x9, 13: ClientResNet18x13}
+    model = models[cutlayer]().to(torch.device(device))
+
     optimizer = torch.optim.SGD(model.parameters(), lr=0.1, momentum=0.9, weight_decay=1e-4)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.2)
 
@@ -182,6 +187,7 @@ def resnet34_tiny_imagenet200_client(device: str = 'cpu',
                                      server_ip: str = "127.0.0.1",
                                      server_port: int = 9000,
                                      epoch: int = 90,
+                                     cutlayer: int = 1,
                                      compressor=None,
                                      ):
     from torchvision.datasets import ImageFolder
@@ -205,8 +211,11 @@ def resnet34_tiny_imagenet200_client(device: str = 'cpu',
     train_loader = DataLoader(train_set, batch_size, shuffle=True)
     validate_loader = DataLoader(validate_set, batch_size, shuffle=False)
 
-    from .client_models import ClientResNet34
-    model = ClientResNet34().to(device)
+    from .client_models import ClientResNet34x1, ClientResNet34x2, ClientResNet34x15, ClientResNet34x27
+
+    models = {1: ClientResNet34x1, 2: ClientResNet34x2, 15: ClientResNet34x15, 27: ClientResNet34x27}
+    model = models[cutlayer]().to(torch.device(device))
+
     optimizer = torch.optim.SGD(model.parameters(), lr=0.1, momentum=0.9, weight_decay=1e-4)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=30, gamma=0.1)
     return BaseClient(epoch, model, optimizer, scheduler, train_loader, validate_loader, ip, port, server_ip,

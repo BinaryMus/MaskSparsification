@@ -35,8 +35,8 @@ python3 main.py --role='client' --arch='vgg19_cifar10' --device='cpu' --ip='127.
 
 # 96.4% sparsification
 
-python3 main.py --role='server' --arch='vgg19_cifar10' --device='cuda' --server_ip='127.0.0.1' --server_port=9000 --batch_size=256 --compressor='sparsification' --ratio=0.964 --epoch=40 # Server
-python3 main.py --role='client' --arch='vgg19_cifar10' --device='cpu' --ip='127.0.0.1' --port=8000 --server_ip='127.0.0.1' --server_port=9000 --batch_size=256 --compressor='sparsification' --ratio=0.964 --epoch=40 --path='../datasets' # Client
+python main.py --role='server' --arch='vgg19_cifar10' --device='cuda' --server_ip='127.0.0.1' --server_port=9001 --batch_size=256 --compressor='sparsification' --ratio=0.964 --epoch=40 --cutlayer=8 # Server
+python main.py --role='client' --arch='vgg19_cifar10' --device='cuda' --ip='127.0.0.1' --port=8000 --server_ip='127.0.0.1' --server_port=9001 --batch_size=256 --compressor='sparsification' --ratio=0.964 --epoch=40 --path='../datasets' --cutlayer=8 # Client
 
 # 99% sparsification with 2-bit compensation
 

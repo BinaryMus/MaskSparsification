@@ -34,6 +34,7 @@ if __name__ == '__main__':
     parser.add_argument('--ratio', default=0.9, type=float)
     parser.add_argument('--epoch', default=20, type=int)
     parser.add_argument('--path', default='../datasets')
+    parser.add_argument('--cutlayer', default=1, type=int)
     arg = parser.parse_args()
     if arg.role == 'client':
         from client import *
@@ -58,6 +59,7 @@ if __name__ == '__main__':
             server_ip=arg.server_ip,
             server_port=arg.server_port,
             epoch=arg.epoch,
+            cutlayer=arg.cutlayer,
             compressor=compressor,
         )
         print(arg.arch)
@@ -82,6 +84,7 @@ if __name__ == '__main__':
             server_port=arg.server_port,
             batch_size=arg.batch_size,
             compressor=compressor,
+            cutlayer=arg.cutlayer,
             epoch=arg.epoch,
         )
         print(arg.arch)
