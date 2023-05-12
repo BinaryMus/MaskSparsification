@@ -1,4 +1,4 @@
-# Communication-efficient Collaborative Learning via Mask Encoding to Immediately Compensate Sparsified Features
+# Sparse but Accurate: Communication-Efficient Collaborative Learning via Sparsified Features with Mask Encoding
 
 ## Parameter Description
 
