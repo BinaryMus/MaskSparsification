@@ -36,7 +36,7 @@ class DecodeSparser:
             x.data = vector.view(x.size())
 
 
-class DecodeSparserWithCompensation:
+class DecodeMaskedSparser:
     def __init__(self, ratio: float = 0.98, bit: int = 2):
         self.ratio = ratio
         self.bit = bit
@@ -46,7 +46,7 @@ class DecodeSparserWithCompensation:
 
     def __str__(self):
         return f"Top-{int((1 - self.ratio) * 100)}% sparsification" \
-               f"with ({self.bit}-bit) mask immediately compensation"
+               f"with ({self.bit}-bit) mask"
 
     def decode(self, x: torch.Tensor, vector: torch.Tensor, mask: torch.Tensor):
         with torch.no_grad():
