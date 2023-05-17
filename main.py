@@ -45,7 +45,7 @@ if __name__ == '__main__':
 
         encode = {"sparsification": EncodeSparser,
                   "quantization": EncodeQuantizer,
-                  "masked_sparsification": EncodeMaskedSparser}
+                  "mask_sparsification": EncodeMaskedSparser}
 
         compressor = encode.get(arg.compressor)
         if compressor is not None:
@@ -74,7 +74,7 @@ if __name__ == '__main__':
 
         decode = {"sparsification": DecodeSparser,
                   "quantization": DecodeQuantizer,
-                  "masked_sparsification": DecodeMaskedSparser}
+                  "mask_sparsification": DecodeMaskedSparser}
         compressor = decode.get(arg.compressor)
         if compressor is not None:
             compressor = compressor(bit=arg.bit, ratio=arg.ratio)
