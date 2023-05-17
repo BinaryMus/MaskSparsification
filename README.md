@@ -24,7 +24,7 @@
 
 ### VGG19 on CIFAR-10
 
-```
+```python
 # Baseline
 
 python3 main.py --role='server' --arch='vgg19_cifar10' --device='cuda' --server_ip='127.0.0.1' --server_port=9000 --batch_size=256 --compressor='baseline' --epoch=40 --cutlayer=1 # Server
@@ -49,7 +49,7 @@ python3 main.py --role='client' --arch='vgg19_cifar10' --device='cpu' --ip='127.
 
 ### ResNet18 on CIFAR-100
 
-```
+```python
 # Baseline
 
 python3 main.py --role='server' --arch='resnet18_cifar100' --device='cuda' --server_ip='127.0.0.1' --server_port=9000 --batch_size=256 --compressor='baseline' --epoch=60 --cutlayer=1 # Server
@@ -74,7 +74,7 @@ python3 main.py --role='client' --arch='resnet18_cifar100' --device='cpu' --ip='
 
 ### ResNet34 on Tiny-ImageNet
 
-```
+```python
 # Baseline
 
 python3 main.py --role='server' --arch='resnet34_tiny_imagenet200' --device='cuda' --server_ip='127.0.0.1' --server_port=9000 --batch_size=256 --compressor='baseline' --epoch=90 --cutlayer=1 # Server
