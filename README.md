@@ -27,23 +27,23 @@
 ```python
 # Baseline
 
-python3 main.py --role='server' --arch='vgg19_cifar10' --device='cuda' --server_ip='127.0.0.1' --server_port=9000 --batch_size=256 --compressor='baseline' --epoch=40 --cutlayer=1 # Server
-python3 main.py --role='client' --arch='vgg19_cifar10' --device='cpu' --ip='127.0.0.1' --port=8000 --server_ip='127.0.0.1' --server_port=9000 --batch_size=256 --compressor='baseline' --epoch=40 --path='../datasets' --cutlayer=1 # Client
+python3 main.py --role='server' --arch='vgg19_cifar10' --device='cuda' --server_ip='127.0.0.1' --server_port=9000 --batch_size=128 --compressor='baseline' --epoch=200 --cutlayer=1 # Server
+python3 main.py --role='client' --arch='vgg19_cifar10' --device='cpu' --ip='127.0.0.1' --port=8000 --server_ip='127.0.0.1' --server_port=9000 --batch_size=128 --compressor='baseline' --epoch=200 --path='../datasets' --cutlayer=1 # Client
 
 # 2-bit quantization
 
-python3 main.py --role='server' --arch='vgg19_cifar10' --device='cuda' --server_ip='127.0.0.1' --server_port=9000 --batch_size=256 --compressor='quantization' --bit=2 --epoch=40 --cutlayer=1 # Server
-python3 main.py --role='client' --arch='vgg19_cifar10' --device='cpu' --ip='127.0.0.1' --port=8000 --server_ip='127.0.0.1' --server_port=9000 --batch_size=256 --compressor='quantization' --bit=2 --epoch=40 --path='../datasets' --cutlayer=1 # Client
+python3 main.py --role='server' --arch='vgg19_cifar10' --device='cuda' --server_ip='127.0.0.1' --server_port=9000 --batch_size=128 --compressor='quantization' --bit=2 --epoch=200 --cutlayer=1 # Server
+python3 main.py --role='client' --arch='vgg19_cifar10' --device='cpu' --ip='127.0.0.1' --port=8000 --server_ip='127.0.0.1' --server_port=9000 --batch_size=128 --compressor='quantization' --bit=2 --epoch=200 --path='../datasets' --cutlayer=1 # Client
 
 # 96.4% sparsification
 
-python main.py --role='server' --arch='vgg19_cifar10' --device='cuda' --server_ip='127.0.0.1' --server_port=9001 --batch_size=256 --compressor='sparsification' --ratio=0.964 --epoch=40 --cutlayer=1 # Server
-python main.py --role='client' --arch='vgg19_cifar10' --device='cpu' --ip='127.0.0.1' --port=8000 --server_ip='127.0.0.1' --server_port=9001 --batch_size=256 --compressor='sparsification' --ratio=0.964 --epoch=40 --path='../datasets' --cutlayer=1 # Client
+python main.py --role='server' --arch='vgg19_cifar10' --device='cuda' --server_ip='127.0.0.1' --server_port=9001 --batch_size=128 --compressor='sparsification' --ratio=0.964 --epoch=200 --cutlayer=1 # Server
+python main.py --role='client' --arch='vgg19_cifar10' --device='cpu' --ip='127.0.0.1' --port=8000 --server_ip='127.0.0.1' --server_port=9001 --batch_size=128 --compressor='sparsification' --ratio=0.964 --epoch=200 --path='../datasets' --cutlayer=1 # Client
 
 # 99% sparsification with 2-bit compensation
 
-python3 main.py --role='server' --arch='vgg19_cifar10' --device='cuda' --server_ip='127.0.0.1' --server_port=9000 --batch_size=256 --compressor='sparsification_compensation' --ratio=0.99 --bit=2 --epoch=40 --cutlayer=1 # Server
-python3 main.py --role='client' --arch='vgg19_cifar10' --device='cpu' --ip='127.0.0.1' --port=8000 --server_ip='127.0.0.1' --server_port=9000 --batch_size=256 --compressor='sparsification_compensation' --ratio=0.99 --bit=2 --epoch=40 --path='../datasets' --cutlayer=1 # Client
+python3 main.py --role='server' --arch='vgg19_cifar10' --device='cuda' --server_ip='127.0.0.1' --server_port=9000 --batch_size=128 --compressor='sparsification_compensation' --ratio=0.99 --bit=2 --epoch=200 --cutlayer=1 # Server
+python3 main.py --role='client' --arch='vgg19_cifar10' --device='cpu' --ip='127.0.0.1' --port=8000 --server_ip='127.0.0.1' --server_port=9000 --batch_size=128 --compressor='sparsification_compensation' --ratio=0.99 --bit=2 --epoch=200 --path='../datasets' --cutlayer=1 # Client
 
 ```
 
@@ -52,23 +52,23 @@ python3 main.py --role='client' --arch='vgg19_cifar10' --device='cpu' --ip='127.
 ```python
 # Baseline
 
-python3 main.py --role='server' --arch='resnet18_cifar100' --device='cuda' --server_ip='127.0.0.1' --server_port=9000 --batch_size=256 --compressor='baseline' --epoch=60 --cutlayer=1 # Server
-python3 main.py --role='client' --arch='resnet18_cifar100' --device='cpu' --ip='127.0.0.1' --port=8000 --server_ip='127.0.0.1' --server_port=9000 --batch_size=256 --compressor='baseline' --epoch=60 --path='../datasets' --cutlayer=1 # Client
+python3 main.py --role='server' --arch='resnet18_cifar100' --device='cuda' --server_ip='127.0.0.1' --server_port=9000 --batch_size=128 --compressor='baseline' --epoch=200 --cutlayer=1 # Server
+python3 main.py --role='client' --arch='resnet18_cifar100' --device='cpu' --ip='127.0.0.1' --port=8000 --server_ip='127.0.0.1' --server_port=9000 --batch_size=128 --compressor='baseline' --epoch=200 --path='../datasets' --cutlayer=1 # Client
 
 # 2-bit quantization
 
-python3 main.py --role='server' --arch='resnet18_cifar100' --device='cpu' --server_ip='127.0.0.1' --server_port=9000 --batch_size=256 --compressor='quantization' --bit=2 --epoch=60 --cutlayer=1# Server
-python3 main.py --role='client' --arch='resnet18_cifar100' --device='cpu' --ip='127.0.0.1' --port=8000 --server_ip='127.0.0.1' --server_port=9000 --batch_size=256 --compressor='quantization' --bit=2 --epoch=60 --path='../datasets' --cutlayer=1 # Client
+python3 main.py --role='server' --arch='resnet18_cifar100' --device='cpu' --server_ip='127.0.0.1' --server_port=9000 --batch_size=128 --compressor='quantization' --bit=2 --epoch=200 --cutlayer=1# Server
+python3 main.py --role='client' --arch='resnet18_cifar100' --device='cpu' --ip='127.0.0.1' --port=8000 --server_ip='127.0.0.1' --server_port=9000 --batch_size=128 --compressor='quantization' --bit=2 --epoch=200 --path='../datasets' --cutlayer=1 # Client
 
 # 96.4% sparsification
 
-python3 main.py --role='server' --arch='resnet18_cifar100' --device='cuda' --server_ip='127.0.0.1' --server_port=9000 --batch_size=256 --compressor='sparsification' --ratio=0.964 --epoch=60 --cutlayer=1 # Server
-python3 main.py --role='client' --arch='resnet18_cifar100' --device='cpu' --ip='127.0.0.1' --port=8000 --server_ip='127.0.0.1' --server_port=9000 --batch_size=256 --compressor='sparsification' --ratio=0.964 --epoch=60 --path='../datasets' --cutlayer=1 # Client
+python3 main.py --role='server' --arch='resnet18_cifar100' --device='cuda' --server_ip='127.0.0.1' --server_port=9000 --batch_size=128 --compressor='sparsification' --ratio=0.964 --epoch=200 --cutlayer=1 # Server
+python3 main.py --role='client' --arch='resnet18_cifar100' --device='cpu' --ip='127.0.0.1' --port=8000 --server_ip='127.0.0.1' --server_port=9000 --batch_size=128 --compressor='sparsification' --ratio=0.964 --epoch=200 --path='../datasets' --cutlayer=1 # Client
 
 # 99% sparsification with 2-bit compensation
 
-python3 main.py --role='server' --arch='resnet18_cifar100' --device='cuda' --server_ip='127.0.0.1' --server_port=9000 --batch_size=256 --compressor='sparsification_compensation' --ratio=0.99 --bit=2 --epoch=60 --cutlayer=1 # Server
-python3 main.py --role='client' --arch='resnet18_cifar100' --device='cpu' --ip='127.0.0.1' --port=8000 --server_ip='127.0.0.1' --server_port=9000 --batch_size=256 --compressor='sparsification_compensation' --ratio=0.99 --bit=2 --epoch=60 --path='../datasets' --cutlayer=1 # Client
+python3 main.py --role='server' --arch='resnet18_cifar100' --device='cuda' --server_ip='127.0.0.1' --server_port=9000 --batch_size=128 --compressor='sparsification_compensation' --ratio=0.99 --bit=2 --epoch=200 --cutlayer=1 # Server
+python3 main.py --role='client' --arch='resnet18_cifar100' --device='cpu' --ip='127.0.0.1' --port=8000 --server_ip='127.0.0.1' --server_port=9000 --batch_size=128 --compressor='sparsification_compensation' --ratio=0.99 --bit=2 --epoch=200 --path='../datasets' --cutlayer=1 # Client
 
 ```
 
