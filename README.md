@@ -57,7 +57,7 @@ python3 main.py --role='client' --arch='resnet18_cifar100' --device='cpu' --ip='
 
 # 2-bit quantization
 
-python3 main.py --role='server' --arch='resnet18_cifar100' --device='cpu' --server_ip='127.0.0.1' --server_port=9000 --batch_size=128 --compressor='quantization' --bit=2 --epoch=200 --cutlayer=1# Server
+python3 main.py --role='server' --arch='resnet18_cifar100' --device='cuda' --server_ip='127.0.0.1' --server_port=9000 --batch_size=128 --compressor='quantization' --bit=2 --epoch=200 --cutlayer=1# Server
 python3 main.py --role='client' --arch='resnet18_cifar100' --device='cpu' --ip='127.0.0.1' --port=8000 --server_ip='127.0.0.1' --server_port=9000 --batch_size=128 --compressor='quantization' --bit=2 --epoch=200 --path='../datasets' --cutlayer=1 # Client
 
 # 96.4% sparsification
