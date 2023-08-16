@@ -114,22 +114,32 @@ def vgg19_cifar10_client(device: str = 'cpu',
                          port: int = 8000,
                          server_ip: str = "127.0.0.1",
                          server_port: int = 9000,
-                         epoch: int = 40,
+                         epoch: int = 200,
                          cutlayer: int = 1,
                          compressor=None,
                          ):
     from torchvision.datasets import CIFAR10
-    from torchvision.transforms import Compose, ToTensor, Normalize
+    from torchvision.transforms import Compose, ToTensor, Normalize, RandomCrop, RandomHorizontalFlip
     from .client_models import ClientVGG19x1, ClientVGG19x2, ClientVGG19x8, ClientVGG19x15
     models = {1: ClientVGG19x1, 2: ClientVGG19x2, 8: ClientVGG19x8, 15: ClientVGG19x15}
     model = models[cutlayer]().to(torch.device(device))
 
-    optimizer = torch.optim.SGD(model.parameters(), lr=0.1, momentum=0.9, weight_decay=1e-4)
-    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.2)
-
-    transform = Compose([ToTensor(), Normalize((0.1307,), (0.3081,))])
-    train_set = CIFAR10(root=path, train=True, transform=transform)
-    validate_set = CIFAR10(root=path, train=False, transform=transform)
+    optimizer = torch.optim.SGD(model.parameters(), lr=0.1, momentum=0.9, weight_decay=5e-4)
+    # scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.2)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=200)
+    # transform = Compose([ToTensor(), Normalize((0.1307,), (0.3081,))])
+    transform_train = Compose([
+        RandomCrop(32, padding=4),
+        RandomHorizontalFlip(),
+        ToTensor(),
+        Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+    ])
+    transform_test = Compose([
+        ToTensor(),
+        Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+    ])
+    train_set = CIFAR10(root=path, train=True, transform=transform_train)
+    validate_set = CIFAR10(root=path, train=False, transform=transform_test)
 
     train_loader = DataLoader(train_set, batch_size, shuffle=True)
     validate_loader = DataLoader(validate_set, batch_size, shuffle=False)
@@ -156,20 +166,27 @@ def resnet18_cifar100_client(device: str = 'cpu',
     models = {1: ClientResNet18x1, 2: ClientResNet18x2, 9: ClientResNet18x9, 13: ClientResNet18x13}
     model = models[cutlayer]().to(torch.device(device))
 
-    optimizer = torch.optim.SGD(model.parameters(), lr=0.1, momentum=0.9, weight_decay=1e-4)
-    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.2)
+    optimizer = torch.optim.SGD(model.parameters(), lr=0.1, momentum=0.9, weight_decay=5e-4)
+    # scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.2)
+    scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[60, 120, 160], gamma=0.2)
 
-    transform = Compose([
+    transform_train = Compose([
         RandomCrop(32, padding=4),
         RandomHorizontalFlip(),
-        RandomRotation(15),
         ToTensor(),
-        Normalize((0.5070, 0.4865, 0.4409)
-                  , (0.2673, 0.2564, 0.2761))]
-    )
+        Normalize((0.5070751592371323, 0.48654887331495095, 0.4409178433670343), 
+                  (0.2673342858792401, 0.2564384629170883, 0.27615047132568404)),
+                  ])
 
-    train_set = CIFAR100(root=path, train=True, transform=transform)
-    validate_set = CIFAR100(root=path, train=False, transform=transform)
+    transform_test = Compose([
+        ToTensor(),
+        Normalize((0.5088964127604166, 0.48739301317401956, 0.44194221124387256),
+                  (0.2682515741720801, 0.2573637364478126, 0.2770957707973042)),
+                  ])
+
+
+    train_set = CIFAR100(root=path, train=True, transform=transform_train, download=True)
+    validate_set = CIFAR100(root=path, train=False, transform=transform_test, download=True)
 
     train_loader = DataLoader(train_set, batch_size, shuffle=True)
     validate_loader = DataLoader(validate_set, batch_size, shuffle=False)

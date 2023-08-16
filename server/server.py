@@ -96,13 +96,14 @@ def vgg19_cifar10_server(device: str = 'cuda',
                          batch_size: int = 256,
                          compressor=None,
                          cutlayer: int = 1,
-                         epoch: int = 40,
+                         epoch: int = 200,
                          ):
     from .server_models import ServerVGG19x18, ServerVGG19X17, ServerVGG19X11, ServerVGG19x4
     models = {1: ServerVGG19x18, 2: ServerVGG19X17, 8: ServerVGG19X11, 15: ServerVGG19x4}
     model = models[cutlayer]().to(device)
-    optimizer = torch.optim.SGD(model.parameters(), lr=0.1, momentum=0.9, weight_decay=1e-4)
-    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.2)
+    optimizer = torch.optim.SGD(model.parameters(), lr=0.1, momentum=0.9, weight_decay=5e-4)
+    # scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.2)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=200)
     sizes = {1: [batch_size, 64, 32, 32], 2: [batch_size, 64, 16, 16], 8: [batch_size, 256, 4, 4],
              15: [batch_size, 512, 2, 2]}
 
@@ -122,8 +123,10 @@ def resnet18_cifar100_server(device: str = 'cuda',
     models = {1: ServerResNet18x17, 2: ServerResNet18x16, 9: ServerResNet18x9, 13: ServerResNet18x5}
     model = models[cutlayer]().to(device)
 
-    optimizer = torch.optim.SGD(model.parameters(), lr=0.1, momentum=0.9, weight_decay=1e-4)
-    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.2)
+    optimizer = torch.optim.SGD(model.parameters(), lr=0.1, momentum=0.9, weight_decay=5e-4)
+    # scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.2)
+    scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[60, 120, 160], gamma=0.2)
+
     sizes = {1: [batch_size, 64, 32, 32], 2: [batch_size, 64, 32, 32], 9: [batch_size, 128, 16, 16],
              13: [batch_size, 256, 8, 8]}
     return BaseServer(model, optimizer, scheduler, sizes[cutlayer], epoch, server_ip, server_port, device,
