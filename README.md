@@ -2,7 +2,7 @@
 
 This paper introduces a novel framework designed to achieve a high compression ratio in Split Learning (SL) scenarios where resource-constrained devices are involved in large-scale model training. Our investigations demonstrate that compressing feature maps within SL leads to biased gradients that can negatively impact the convergence rates and diminish the generalization capabilities of the resulting models. Our theoretical analysis provides insights into how compression errors critically hinder SL performance, which previous methodologies underestimate. To address these challenges, we employ a narrow bit-width encoded mask to compensate for the sparsification error without increasing the order of time complexity. Supported by rigorous theoretical analysis, our framework significantly reduces compression errors and accelerates the convergence. Extensive experiments also verify that our method outperforms existing solutions regarding training efficiency and communication complexity.
 
-🎉 **Our paper has been accepted at the 27th European Conference on Artifical Intelligence (ECAI 2021)** 🎉
+🎉 **Our paper has been accepted at the 27th European Conference on Artifical Intelligence (ECAI 2024)** 🎉
 
 Manuscript Paper: [paper](https://github.com/0xc0de996/MaskSparsification/blob/master/paper_manuscript.pdf)
 
