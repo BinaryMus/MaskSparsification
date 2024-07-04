@@ -4,6 +4,8 @@ This paper introduces a novel framework designed to achieve a high compression r
 
 🎉 **Our paper has been accepted at the 27th European Conference on Artifical Intelligence (ECAI 2021)** 🎉
 
+Manuscript Paper: [paper](https://github.com/0xc0de996/MaskSparsification/blob/master/paper_manuscript.pdf)
+
 # How to Use
 Install packages in `requirements.txt`:
 ```shell
