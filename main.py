@@ -5,6 +5,7 @@ import random
 import numpy as np
 import torch
 
+from functools import reduce
 
 def seed_it(seed):
     random.seed(seed)
@@ -21,72 +22,79 @@ def seed_it(seed):
 if __name__ == '__main__':
     seed_it(42)
     parser = argparse.ArgumentParser()
-    parser.add_argument('--role', default='client')  # client / server
+    parser.add_argument('--role', default='client')    
     parser.add_argument('--arch', default='vgg19_cifar10')
-    parser.add_argument('--device', default='cpu')
-    parser.add_argument('--ip', default='127.0.0.1')
-    parser.add_argument('--port', default=8000)
+    parser.add_argument('--cutlayer', type=str)
+    parser.add_argument('--path', type=str)
+
+    parser.add_argument('--compressor', type=str)
+    parser.add_argument('--ratio', type=float)
+    parser.add_argument('--bit', type=int)
+
+    parser.add_argument('--client_ip', default='127.0.0.1')
+    parser.add_argument('--client_port', default=8000)
+    parser.add_argument('--client_device', default='cpu')
     parser.add_argument('--server_ip', default='127.0.0.1')
     parser.add_argument('--server_port', default=9000)
+    parser.add_argument('--server_device', type=str, default='cuda')
+
     parser.add_argument('--batch_size', default=256, type=int)
-    parser.add_argument('--compressor', default='baseline')
-    parser.add_argument('--bit', default=8, type=int)
-    parser.add_argument('--ratio', default=0.9, type=float)
-    parser.add_argument('--epoch', default=20, type=int)
-    parser.add_argument('--path', default='../datasets')
-    parser.add_argument('--cutlayer', default=1, type=int)
     arg = parser.parse_args()
+
+    sizes_vgg19 = {'shallow': [arg.batch_size, 64, 16, 16], 'medium': [arg.batch_size, 256, 4, 4], 'deep': [arg.batch_size, 512, 2, 2]}
+    sizes_res18 = {'shallow': [arg.batch_size, 64, 32, 32], 'medium': [arg.batch_size, 128, 16, 16], 'deep': [arg.batch_size, 256, 8, 8]}
+    sizes_res34 = {'shallow': [arg.batch_size, 64, 56, 56], 'medium': [arg.batch_size, 128, 28, 28], 'deep': [arg.batch_size, 256, 14, 14]}
+
+    sizes = {"vgg19_cifar10": sizes_vgg19, "res18_cifar100": sizes_res18, "res34_imagenet": sizes_res34}
+
     if arg.role == 'client':
-        from client import *
+        from client.client import *
+        from client.client_encode import *
 
         arch = {"vgg19_cifar10": vgg19_cifar10_client,
-                "resnet18_cifar100": resnet18_cifar100_client,
-                "resnet34_tiny_imagenet200": resnet34_tiny_imagenet200_client}
+                "res18_cifar100": resnet18_cifar100_client,
+                "res34_imagenet": resnet34_imagenet_client}
 
-        encode = {"sparsification": EncodeSparser,
-                  "quantization": EncodeQuantizer,
-                  "mask_sparsification": EncodeMaskedSparser}
-
+        encode = {"sp": EncodeSparser,
+                  "qu": EncodeQuantizer,
+                  "ms": EncodeMaskedSparser}
         compressor = encode.get(arg.compressor)
         if compressor is not None:
-            compressor = compressor(bit=arg.bit, ratio=arg.ratio)
+            k = int(reduce((lambda x, y: x * y), sizes[arg.arch][arg.cutlayer]) * (1 - arg.ratio))
+            compressor = compressor(bit=arg.bit, k=k)
         client = arch.get(arg.arch)(
-            device=arg.device,
+            device=arg.client_device,
             batch_size=arg.batch_size,
             path=arg.path,
-            ip=arg.ip,
-            port=arg.port,
+            ip=arg.client_ip,
+            port=arg.client_port,
             server_ip=arg.server_ip,
             server_port=arg.server_port,
-            epoch=arg.epoch,
             cutlayer=arg.cutlayer,
             compressor=compressor,
         )
-        print(arg.arch)
-        print(arg.compressor)
         client.train()
     elif arg.role == 'server':
-        from server import *
+        from server.server import *
+        from server.server_decode import *
 
         arch = {"vgg19_cifar10": vgg19_cifar10_server,
-                "resnet18_cifar100": resnet18_cifar100_server,
-                "resnet34_tiny_imagenet200": resnet34_tiny_imagenet200_server}
+                "res18_cifar100": resnet18_cifar100_server,
+                "res34_imagenet": resnet34_imagenet_server}
 
-        decode = {"sparsification": DecodeSparser,
-                  "quantization": DecodeQuantizer,
-                  "mask_sparsification": DecodeMaskedSparser}
+        decode = {"sp": DecodeSparser,
+                  "qu": DecodeQuantizer,
+                  "ms": DecodeMaskedSparser}
         compressor = decode.get(arg.compressor)
         if compressor is not None:
-            compressor = compressor(bit=arg.bit, ratio=arg.ratio)
+            k = int(reduce((lambda x, y: x * y), sizes[arg.arch][arg.cutlayer]) * (1 - arg.ratio))
+            compressor = compressor(bit=arg.bit, k=k)
         server = arch.get(arg.arch)(
-            device=arg.device,
+            device=arg.server_device,
             server_ip=arg.server_ip,
             server_port=arg.server_port,
             batch_size=arg.batch_size,
             compressor=compressor,
             cutlayer=arg.cutlayer,
-            epoch=arg.epoch,
         )
-        print(arg.arch)
-        print(arg.compressor)
         server.train()

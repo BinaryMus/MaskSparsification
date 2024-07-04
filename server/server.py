@@ -44,7 +44,7 @@ class BaseServer:
             mode, v, m, y = pickle.loads(self.socket.recv())
             self.sz[0] = len(y)
             smashed_data = torch.zeros(self.sz).to(self.device)
-            self.compressor.decode(smashed_data, v, m)
+            self.compressor(smashed_data, v, m)
             smashed_data = smashed_data.to(self.device)
         else:
             mode, smashed_data, y = pickle.loads(self.socket.recv())
@@ -95,20 +95,16 @@ def vgg19_cifar10_server(device: str = 'cuda',
                          server_port: int = 9000,
                          batch_size: int = 256,
                          compressor=None,
-                         cutlayer: int = 1,
-                         epoch: int = 200,
+                         cutlayer: str='shallow',
                          ):
-    from .server_models import ServerVGG19x18, ServerVGG19X17, ServerVGG19X11, ServerVGG19x4
-    models = {1: ServerVGG19x18, 2: ServerVGG19X17, 8: ServerVGG19X11, 15: ServerVGG19x4}
+    from .server_models import  ServerVGG19X17, ServerVGG19X11, ServerVGG19x4
+    models = {'shallow': ServerVGG19X17, 'medium': ServerVGG19X11, 'deep': ServerVGG19x4}
     model = models[cutlayer]().to(device)
     optimizer = torch.optim.SGD(model.parameters(), lr=0.1, momentum=0.9, weight_decay=5e-4)
-    # scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.2)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=200)
-    sizes = {1: [batch_size, 64, 32, 32], 2: [batch_size, 64, 16, 16], 8: [batch_size, 256, 4, 4],
-             15: [batch_size, 512, 2, 2]}
+    sizes = {'shallow': [batch_size, 64, 16, 16], 'medium': [batch_size, 256, 4, 4], 'deep': [batch_size, 512, 2, 2]}
 
-    return BaseServer(model, optimizer, scheduler, sizes[cutlayer], epoch, server_ip, server_port, device,
-                      compressor)
+    return BaseServer(model, optimizer, scheduler, sizes[cutlayer], 200, server_ip, server_port, device, compressor)
 
 
 def resnet18_cifar100_server(device: str = 'cuda',
@@ -116,39 +112,30 @@ def resnet18_cifar100_server(device: str = 'cuda',
                              server_port: int = 9000,
                              batch_size: int = 256,
                              compressor=None,
-                             cutlayer: int = 1,
-                             epoch: int = 60,
+                             cutlayer: str='shallow',
                              ):
-    from .server_models import ServerResNet18x17, ServerResNet18x16, ServerResNet18x9, ServerResNet18x5
-    models = {1: ServerResNet18x17, 2: ServerResNet18x16, 9: ServerResNet18x9, 13: ServerResNet18x5}
+    from .server_models import ServerResNet18x16, ServerResNet18x9, ServerResNet18x5
+    models = {'shallow': ServerResNet18x16, 'medium': ServerResNet18x9, 'deep': ServerResNet18x5}
     model = models[cutlayer]().to(device)
 
     optimizer = torch.optim.SGD(model.parameters(), lr=0.1, momentum=0.9, weight_decay=5e-4)
-    # scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.2)
     scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[60, 120, 160], gamma=0.2)
 
-    sizes = {1: [batch_size, 64, 32, 32], 2: [batch_size, 64, 32, 32], 9: [batch_size, 128, 16, 16],
-             13: [batch_size, 256, 8, 8]}
-    return BaseServer(model, optimizer, scheduler, sizes[cutlayer], epoch, server_ip, server_port, device,
-                      compressor)
-
-
-def resnet34_tiny_imagenet200_server(device: str = 'cuda',
-                                     server_ip: str = "127.0.0.1",
-                                     server_port: int = 9000,
-                                     batch_size: int = 128,
-                                     compressor=None,
-                                     cutlayer: int = 1,
-                                     epoch: int = 90,
-                                     ):
-    from .server_models import ServerResNet34x33, ServerResNet34x32, ServerResNet34x19, ServerResNet34x7
-    models = {1: ServerResNet34x33, 2: ServerResNet34x32, 15: ServerResNet34x19, 27: ServerResNet34x7}
+    sizes = {'shallow': [batch_size, 64, 32, 32], 'medium': [batch_size, 128, 16, 16], 'deep': [batch_size, 256, 8, 8]}
+    return BaseServer(model, optimizer, scheduler, sizes[cutlayer], 200, server_ip, server_port, device, compressor)
+                      
+def resnet34_imagenet_server(device: str = 'cuda',
+                             server_ip: str = "127.0.0.1",
+                             server_port: int = 9000,
+                             batch_size: int = 256,
+                             compressor=None,
+                             cutlayer: str = 'shallow',
+                             ):
+    from .server_models import ServerResNet34x32, ServerResNet34x19, ServerResNet34x7
+    models = {'shallow': ServerResNet34x32, 'medium': ServerResNet34x19, 'deep': ServerResNet34x7}
     model = models[cutlayer]().to(device)
 
     optimizer = torch.optim.SGD(model.parameters(), lr=0.1, momentum=0.9, weight_decay=1e-4)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=30, gamma=0.1)
-    sizes = {1: [batch_size, 64, 64, 64], 2: [batch_size, 64, 64, 64], 15: [batch_size, 128, 32, 32],
-             27: [batch_size, 256, 16, 16]}
-
-    return BaseServer(model, optimizer, scheduler, sizes[cutlayer], epoch, server_ip, server_port, device,
-                      compressor)
+    sizes = {'shallow': [batch_size, 64, 56, 56], 'medium': [batch_size, 128, 28, 28], 'deep': [batch_size, 256, 14, 14]}
+    return BaseServer(model, optimizer, scheduler, sizes[cutlayer], 90, server_ip, server_port, device, compressor)

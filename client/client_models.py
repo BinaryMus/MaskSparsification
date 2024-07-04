@@ -275,9 +275,10 @@ class ClientResNet34x1(nn.Module):
     def __init__(self):
         super(ClientResNet34x1, self).__init__()
         self.client_feature_extraction = nn.Sequential(
-            nn.Conv2d(3, 64, kernel_size=3, padding=1, bias=False),
+            nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3, bias=False),
             nn.BatchNorm2d(64),
-            nn.ReLU(inplace=True)
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
         )
 
     def forward(self, x):
@@ -297,7 +298,7 @@ class ClientResNet34x2(ClientResNet34x1):
                 nn.BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
                 nn.Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False),
                 nn.BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-                nn.ReLU()
+                nn.ReLU(inplace=True)
             )
         )
 
@@ -311,8 +312,8 @@ class ClientResNet34x15(ClientResNet34x1):
         self.in_channels = 64
         self.client_feature_extraction.append(
             nn.Sequential(
-                self._make_layer(BasicBlock, 64, 2, 1),
-                self._make_layer(BasicBlock, 128, 2, 2),
+                self._make_layer(BasicBlock, 64, 3, 1),
+                self._make_layer(BasicBlock, 128, 4, 2),
             )
         )
 

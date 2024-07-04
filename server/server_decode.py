@@ -8,7 +8,7 @@ class DecodeQuantizer:
     def __str__(self):
         return f"{self.bit}-bit quantization"
 
-    def decode(self, x: torch.Tensor, scale: (float, float), data):
+    def __call__(self, x: torch.Tensor, scale: (float, float), data):
         with torch.no_grad():
             if data.device != x.device:
                 data = data.to(x.device)
@@ -20,13 +20,13 @@ class DecodeQuantizer:
 
 
 class DecodeSparser:
-    def __init__(self, ratio: float = 0.75, **kwargs):
-        self.ratio = ratio
+    def __init__(self, k: int, **kwargs):
+        self.k = k
 
     def __str__(self):
-        return f"Top-{int((1 - self.ratio) * 100)}% sparsification"
+        return f"Top-{self.k} sparsification"
 
-    def decode(self, x: torch.Tensor, values: torch.Tensor, indices: torch.Tensor) -> None:
+    def __call__(self, x: torch.Tensor, values: torch.Tensor, indices: torch.Tensor) -> None:
         with torch.no_grad():
             if values.device != x.device:
                 values = values.to(x.device)
@@ -37,18 +37,17 @@ class DecodeSparser:
 
 
 class DecodeMaskedSparser:
-    def __init__(self, ratio: float = 0.98, bit: int = 2):
-        self.ratio = ratio
+    def __init__(self, k: int, bit: int = 2):
+        self.k = k
         self.bit = bit
-        self.sparser = DecodeSparser(ratio)
+        self.sparser = DecodeSparser(k)
         self.quantizer = DecodeQuantizer(bit)
         self.length = (1 << bit) - 1
 
     def __str__(self):
-        return f"Top-{int((1 - self.ratio) * 100)}% sparsification" \
-               f"with ({self.bit}-bit) mask"
+        return f"Top-{self.k} sparsification with {self.bit}-bit mask"
 
-    def decode(self, x: torch.Tensor, vector: torch.Tensor, mask: torch.Tensor):
+    def __call__(self, x: torch.Tensor, vector: torch.Tensor, mask: torch.Tensor):
         with torch.no_grad():
             if vector.device != x.device:
                 vector = vector.to(x.device)

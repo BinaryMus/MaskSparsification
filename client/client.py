@@ -56,7 +56,7 @@ class BaseClient:
                 smashed_data = self.model(x)
 
         if self.compressor is not None:
-            v, m = self.compressor.encode(smashed_data)
+            v, m = self.compressor(smashed_data)
             data = pickle.dumps((mode, v, m, y))
             client_socket.send(data)
         else:
@@ -114,20 +114,17 @@ def vgg19_cifar10_client(device: str = 'cpu',
                          port: int = 8000,
                          server_ip: str = "127.0.0.1",
                          server_port: int = 9000,
-                         epoch: int = 200,
-                         cutlayer: int = 1,
+                         cutlayer: str='shallow',
                          compressor=None,
                          ):
     from torchvision.datasets import CIFAR10
     from torchvision.transforms import Compose, ToTensor, Normalize, RandomCrop, RandomHorizontalFlip
-    from .client_models import ClientVGG19x1, ClientVGG19x2, ClientVGG19x8, ClientVGG19x15
-    models = {1: ClientVGG19x1, 2: ClientVGG19x2, 8: ClientVGG19x8, 15: ClientVGG19x15}
+    from .client_models import ClientVGG19x2, ClientVGG19x8, ClientVGG19x15
+    models = {'medium': ClientVGG19x2, 'shallow': ClientVGG19x8, 'deep': ClientVGG19x15}
     model = models[cutlayer]().to(torch.device(device))
 
     optimizer = torch.optim.SGD(model.parameters(), lr=0.1, momentum=0.9, weight_decay=5e-4)
-    # scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.2)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=200)
-    # transform = Compose([ToTensor(), Normalize((0.1307,), (0.3081,))])
     transform_train = Compose([
         RandomCrop(32, padding=4),
         RandomHorizontalFlip(),
@@ -143,7 +140,7 @@ def vgg19_cifar10_client(device: str = 'cpu',
 
     train_loader = DataLoader(train_set, batch_size, shuffle=True)
     validate_loader = DataLoader(validate_set, batch_size, shuffle=False)
-    return BaseClient(epoch, model, optimizer, scheduler, train_loader, validate_loader, ip, port, server_ip,
+    return BaseClient(200, model, optimizer, scheduler, train_loader, validate_loader, ip, port, server_ip,
                       server_port,
                       device, compressor)
 
@@ -155,19 +152,17 @@ def resnet18_cifar100_client(device: str = 'cpu',
                              port: int = 8000,
                              server_ip: str = "127.0.0.1",
                              server_port: int = 9000,
-                             epoch: int = 60,
-                             cutlayer: int = 1,
+                             cutlayer: str='shallow',
                              compressor=None,
                              ):
     from torchvision.datasets import CIFAR100
     from torchvision.transforms import Compose, ToTensor, Normalize, RandomCrop, RandomHorizontalFlip, RandomRotation
-    from .client_models import ClientResNet18x1, ClientResNet18x2, ClientResNet18x9, ClientResNet18x13
+    from .client_models import ClientResNet18x2, ClientResNet18x9, ClientResNet18x13
 
-    models = {1: ClientResNet18x1, 2: ClientResNet18x2, 9: ClientResNet18x9, 13: ClientResNet18x13}
+    models = {'shallow': ClientResNet18x2, 'medium': ClientResNet18x9, 'deep': ClientResNet18x13}
     model = models[cutlayer]().to(torch.device(device))
 
     optimizer = torch.optim.SGD(model.parameters(), lr=0.1, momentum=0.9, weight_decay=5e-4)
-    # scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.2)
     scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[60, 120, 160], gamma=0.2)
 
     transform_train = Compose([
@@ -185,56 +180,69 @@ def resnet18_cifar100_client(device: str = 'cpu',
                   ])
 
 
-    train_set = CIFAR100(root=path, train=True, transform=transform_train, download=True)
-    validate_set = CIFAR100(root=path, train=False, transform=transform_test, download=True)
+    train_set = CIFAR100(root=path, train=True, transform=transform_train)
+    validate_set = CIFAR100(root=path, train=False, transform=transform_test)
 
     train_loader = DataLoader(train_set, batch_size, shuffle=True)
     validate_loader = DataLoader(validate_set, batch_size, shuffle=False)
 
-    return BaseClient(epoch, model, optimizer, scheduler, train_loader, validate_loader, ip, port, server_ip,
+    return BaseClient(200, model, optimizer, scheduler, train_loader, validate_loader, ip, port, server_ip,
                       server_port,
                       device, compressor)
 
-
-def resnet34_tiny_imagenet200_client(device: str = 'cpu',
-                                     batch_size: int = 256,
-                                     path: str = '/dataset/tiny-imagenet-200',
-                                     ip: str = "127.0.0.1",
-                                     port: int = 8000,
-                                     server_ip: str = "127.0.0.1",
-                                     server_port: int = 9000,
-                                     epoch: int = 90,
-                                     cutlayer: int = 1,
-                                     compressor=None,
-                                     ):
+def resnet34_imagenet_client(device: str = 'cpu',
+                             batch_size: int = 256,
+                             path: str = '../datasets',
+                             ip: str = "127.0.0.1",
+                             port: int = 8000,
+                             server_ip: str = "127.0.0.1",
+                             server_port: int = 9000,
+                             cutlayer: str='shallow',
+                             compressor=None,
+                             ):
     from torchvision.datasets import ImageFolder
-    from torchvision.transforms import Compose, ToTensor, Normalize, RandomCrop, RandomHorizontalFlip, RandomRotation
-    transform = Compose([
-        RandomCrop(64, padding=4),
-        RandomHorizontalFlip(),
-        RandomRotation(15),
-        ToTensor(),
-        Normalize(
-            mean=[0.485, 0.456, 0.406],
-            std=[0.229, 0.224, 0.225])
-    ])
-    train_set = ImageFolder(
-        root=path + '/train',
-        transform=transform)
-    validate_set = ImageFolder(
-        root=path + '/val',
-        transform=transform)
+    from torchvision.transforms import RandomResizedCrop, Compose, ToTensor, Normalize, RandomHorizontalFlip, Resize, CenterCrop
+    from .client_models import ClientResNet34x2, ClientResNet34x15, ClientResNet34x27
 
-    train_loader = DataLoader(train_set, batch_size, shuffle=True)
-    validate_loader = DataLoader(validate_set, batch_size, shuffle=False)
+    train_loader = torch.utils.data.DataLoader(
+        ImageFolder(
+            path + '/train',
+            Compose([
+                RandomResizedCrop(224),
+                RandomHorizontalFlip(),
+                ToTensor(),
+                Normalize(
+                    mean=[0.485, 0.456, 0.406],
+                    std=[0.229, 0.224, 0.225]),
+            ])
+        ),
+        batch_size=batch_size, 
+        shuffle=True,
+        num_workers=4,
+        pin_memory=True
+    )
 
-    from .client_models import ClientResNet34x1, ClientResNet34x2, ClientResNet34x15, ClientResNet34x27
-
-    models = {1: ClientResNet34x1, 2: ClientResNet34x2, 15: ClientResNet34x15, 27: ClientResNet34x27}
+    validate_loader = torch.utils.data.DataLoader(
+        ImageFolder(
+            path + "/val", 
+                Compose([
+                Resize(256),
+                CenterCrop(224),
+                ToTensor(),
+                Normalize(
+                    mean=[0.485, 0.456, 0.406],
+                    std=[0.229, 0.224, 0.225]),
+            ])
+        ),
+        batch_size=256, 
+        shuffle=False,
+        num_workers=4, 
+        pin_memory=True
+    )
+    models = {'shallow': ClientResNet34x2, 'medium': ClientResNet34x15, 'deep': ClientResNet34x27}
     model = models[cutlayer]().to(torch.device(device))
 
     optimizer = torch.optim.SGD(model.parameters(), lr=0.1, momentum=0.9, weight_decay=1e-4)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=30, gamma=0.1)
-    return BaseClient(epoch, model, optimizer, scheduler, train_loader, validate_loader, ip, port, server_ip,
-                      server_port,
-                      device, compressor)
+
+    return BaseClient(90, model, optimizer, scheduler, train_loader, validate_loader, ip, port, server_ip, server_port, device, compressor)

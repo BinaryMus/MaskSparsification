@@ -160,10 +160,10 @@ class BasicBlock(nn.Module):
 
     def forward(self, x):
         import torch.nn.functional as F
-        out = F.relu(self.bn1(self.conv1(x)))
+        out = F.relu(self.bn1(self.conv1(x)), inplace=True)
         out = self.bn2(self.conv2(out))
         out += self.shortcut(x)
-        out = F.relu(out)
+        out = F.relu(out, inplace=True)
         return out
 
 
@@ -260,7 +260,7 @@ class ServerResNet34x33(ServerResNet18x17):
             self.layer4,
             self.avgpool,
         )
-        self.server_classifier = nn.Linear(512, 200)
+        self.server_classifier = nn.Linear(512, 1000)
 
     def __str__(self):
         return "ResNet34x1"

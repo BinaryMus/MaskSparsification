@@ -8,7 +8,7 @@ class EncodeQuantizer:
     def __str__(self):
         return f"{self.bit}-bit quantization"
 
-    def encode(self, x: torch.Tensor, mi=None, ma=None):
+    def __call__(self, x: torch.Tensor, mi=None, ma=None):
         with torch.no_grad():
             if ma is None:
                 ma = x.data.max().item()
@@ -16,41 +16,40 @@ class EncodeQuantizer:
                 mi = x.data.min().item()
             k = ((1 << self.bit) - 1) / (ma - mi)
             b = -mi * k
-            data = torch.round(k * x.data + b).to(torch.uint8)
+            data = torch.round(k * x.data + b)
         return (k, b), data
 
 
 class EncodeSparser:
-    def __init__(self, ratio: float = 0.75, **kwargs):
-        self.ratio = ratio
+    def __init__(self, k: int, **kwargs):
+        self.k = k
 
     def __str__(self):
-        return f"Top-{int((1 - self.ratio) * 100)}% sparsification"
+        return f"Top-{self.k} sparsification"
 
-    def encode(self, x: torch.Tensor) -> (torch.Tensor, torch.Tensor):
+    def __call__(self, x: torch.Tensor):
         with torch.no_grad():
             data_vec = x.data.view(-1)
-            values, indices = torch.topk(data_vec, k=int(data_vec.size(0) * (1 - self.ratio)))
+            values, indices = torch.topk(data_vec, k=self.k)
         return values, indices
 
 
 class EncodeMaskedSparser:
-    def __init__(self, ratio: float = 0.98, bit: int = 2):
-        self.ratio = ratio
+    def __init__(self, k: int, bit: int = 2):
+        self.k = k
         self.bit = bit
-        self.sparser = EncodeSparser(ratio)
+        self.sparser = EncodeSparser(k)
         self.quantizer = EncodeQuantizer(bit)
         self.length = (1 << bit) - 1
 
     def __str__(self):
-        return f"Top-{int((1 - self.ratio) * 100)}% sparsification" \
-               f"with ({self.bit}-bit) mask"
+        return f"Top-{self.k} sparsification with {self.bit}-bit mask"
 
-    def encode(self, x: torch.Tensor):
+    def __call__(self, x: torch.Tensor):
         with torch.no_grad():
             mask = x.data.view(-1)
-            values, indices = self.sparser.encode(x)
-            _, mask = self.quantizer.encode(mask, 0, values[-1])
+            values, indices = self.sparser(x)
+            _, mask = self.quantizer(mask, 0, values[-1])
             mask[mask == self.length] = self.length - 1
             mask[indices] = self.length
             _, value_positions = torch.sort(indices)
